@@ -1,0 +1,75 @@
+# macOS Specific
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Icon must end with two \r
+Icon
+
+# Thumbnails
+._*
+
+# Files that might appear in the root of a volume
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# Xcode Specific
+DerivedData/
+.idea/
+xcuserdata/
+xcuserdata/*.xcuserdatad/
+xcuserdata/*.xcscmblueprint/
+*.xcworkspace
+*.xcodeproj/project.xcworkspace/
+*.xcodeproj/xcuserdata/
+*.xcodeproj/project.xcworkspace/xcuserdata/
+
+# Build Products
+build/
+Build/
+*.ipa
+*.app
+*.dSYM
+*.swiftmodule
+*.swiftdoc
+*.xcent
+
+# Swift Package Manager
+.swiftpm/
+.build/
+
+# Cocoapods
+Pods/
+Podfile.lock
+
+# Carthage
+Carthage/Build/
+
+# Fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots
+fastlane/test_output
+*.lock
+
+# Other
+*.log
+*.tiff
+*.tmp
+*.swp
+*.swo
+*.sqlite
+
+# App Secrets
+Secrets.swift
+GoogleService-Info.plist
