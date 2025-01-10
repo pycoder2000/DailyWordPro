@@ -8,10 +8,15 @@
 import SwiftUI
 
 @main
-struct VocabularyAppApp: App {
+struct VocabularyApp: App {
+    @State private var isMenuOpen = true // Track whether the menu is open
+
     var body: some Scene {
-        WindowGroup {
+        MenuBarExtra("GRE Word", systemImage: "book", isInserted: $isMenuOpen) {
             ContentView()
+                .onDisappear {
+                    isMenuOpen = true // Reopen the menu after disappearing
+                }
         }
     }
 }
