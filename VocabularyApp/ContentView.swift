@@ -1,10 +1,3 @@
-//
-//  ContentView.swift
-//  VocabularyApp
-//
-//  Created by Parth Desai on 1/10/25.
-//
-
 import SwiftUI
 import AppKit
 
@@ -18,8 +11,11 @@ struct ContentView: View {
         VStack(spacing: 16) {
             // Word Section
             Text(word)
-                .font(.system(size: 24, weight: .bold))
+                .font(.system(size: 28, weight: .bold))
                 .foregroundColor(.primary)
+                .padding()
+                .background(Color.blue.opacity(0.1))
+                .cornerRadius(8)
                 .onTapGesture {
                     openGoogleSearch(for: word)
                 }
@@ -41,8 +37,13 @@ struct ContentView: View {
                     .font(.body)
                     .foregroundColor(.primary)
                     .multilineTextAlignment(.leading)
+                    .fixedSize(horizontal: false, vertical: true) // Add this
+                    .padding()
+                    .background(Color.gray.opacity(0.1))
+                    .cornerRadius(8)
             }
             .padding(.horizontal)
+            .frame(maxWidth: .infinity, alignment: .leading)
 
             // Example Section
             VStack(alignment: .leading, spacing: 8) {
@@ -54,10 +55,15 @@ struct ContentView: View {
                     .italic()
                     .foregroundColor(.primary)
                     .multilineTextAlignment(.leading)
+                    .fixedSize(horizontal: false, vertical: true) // Add this
+                    .padding()
+                    .background(Color.gray.opacity(0.1))
+                    .cornerRadius(8)
             }
             .padding(.horizontal)
+            .frame(maxWidth: .infinity, alignment: .leading)
 
-            Divider() // Separator for buttons
+            Divider()
 
             // Buttons Section
             HStack {
@@ -65,7 +71,7 @@ struct ContentView: View {
                     markAsMemorized()
                 }
                 .buttonStyle(.borderedProminent)
-                .keyboardShortcut("m", modifiers: []) // Keyboard shortcut for convenience
+                .keyboardShortcut("m", modifiers: [])
 
                 Button("Next Word") {
                     loadRandomWord()
@@ -76,7 +82,7 @@ struct ContentView: View {
             .frame(maxWidth: .infinity, alignment: .center)
         }
         .padding()
-        .frame(width: 360, height: 260)
+        .frame(width: 360)
         .background(Color(NSColor.windowBackgroundColor))
         .cornerRadius(12)
         .shadow(radius: 8)
@@ -85,13 +91,11 @@ struct ContentView: View {
         }
     }
 
-    // Open Google search for the word
     func openGoogleSearch(for query: String) {
         guard let url = URL(string: "https://www.google.com/search?q=\(query)") else { return }
         NSWorkspace.shared.open(url)
     }
 
-    // Fetch a random word from Google Sheets
     func loadRandomWord() {
         let sheetID = "1U66wi1O42CeuC_7QuMTbF2hlewJinCAmgTOJpZFbV1k"
         let apiKey = "AIzaSyBjNi7cYMOO_RL_qPqI4wuVP71UZPs72Jg"
@@ -129,7 +133,6 @@ struct ContentView: View {
         }.resume()
     }
 
-    // Mark the current word as memorized
     func markAsMemorized() {
         guard let wordID = wordID else { return }
 
