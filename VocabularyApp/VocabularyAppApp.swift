@@ -22,15 +22,16 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var statusItem: NSStatusItem?
     var popover: NSPopover?
     var eventMonitor: EventMonitor?
+    var contentView: ContentView?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        let contentView = ContentView()
+        contentView = ContentView()
 
         popover = NSPopover()
         popover?.contentSize = NSSize(width: 360, height: 0)
         popover?.behavior = .transient
 
-        let hostingController = NSHostingController(rootView: contentView)
+        let hostingController = NSHostingController(rootView: contentView!)
         hostingController.view.setFrameSize(NSSize(width: 360, height: 1))
 
         hostingController.view.autoresizingMask = [.height]
@@ -48,6 +49,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 strongSelf.closePopover(event)
             }
         }
+
+        // Load a new word when the app is opened
+        loadNewWordIfNeeded()
     }
 
     @objc func togglePopover(_ sender: Any?) {
@@ -56,6 +60,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 closePopover(sender)
             } else {
                 showPopover(sender)
+                // Load a new word every time the popover is shown
+                contentView?.loadRandomWord()
             }
         }
     }
@@ -70,6 +76,21 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func closePopover(_ sender: Any?) {
         popover?.performClose(sender)
         eventMonitor?.stop()
+    }
+
+    func loadNewWordIfNeeded() {
+        let lastLoadedDateKey = "lastLoadedDate"
+        let userDefaults = UserDefaults.standard
+
+        if let lastLoadedDate = userDefaults.object(forKey: lastLoadedDateKey) as? Date {
+            if !Calendar.current.isDateInToday(lastLoadedDate) {
+                contentView?.loadRandomWord()
+                userDefaults.set(Date(), forKey: lastLoadedDateKey)
+            }
+        } else {
+            contentView?.loadRandomWord()
+            userDefaults.set(Date(), forKey: lastLoadedDateKey)
+        }
     }
 }
 

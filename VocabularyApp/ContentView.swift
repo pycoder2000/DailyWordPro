@@ -1,3 +1,10 @@
+//
+//  ContentView.swift
+//  VocabularyApp
+//
+//  Created by Parth Desai on 1/10/25.
+//
+
 import SwiftUI
 import AppKit
 
@@ -5,11 +12,25 @@ struct ContentView: View {
     @State private var word: String = "Loading..."
     @State private var meaning: String = "Loading..."
     @State private var example: String = "Loading..."
-    @State private var wordID: String? = nil
+    @State private var memorizedWords: [String] = []
+    private var apiKey: String
+    private var sheetID: String
+
+    init() {
+        if let path = Bundle.main.path(forResource: "Config", ofType: "plist"),
+           let config = NSDictionary(contentsOfFile: path),
+           let apiKey = config["API_KEY"] as? String,
+           let sheetID = config["SHEET_ID"] as? String {
+            self.apiKey = apiKey
+            self.sheetID = sheetID
+        } else {
+            fatalError("API_KEY or SHEET_ID not found in Config.plist")
+        }
+    }
 
     var body: some View {
         VStack(spacing: 16) {
-            // Word Section
+
             Text(word)
                 .font(.system(size: 28, weight: .bold))
                 .foregroundColor(.primary)
@@ -28,7 +49,7 @@ struct ContentView: View {
                 }
                 .frame(maxWidth: .infinity, alignment: .center)
 
-            // Meaning Section
+
             VStack(alignment: .leading, spacing: 8) {
                 Text("Meaning:")
                     .font(.headline)
@@ -37,7 +58,7 @@ struct ContentView: View {
                     .font(.body)
                     .foregroundColor(.primary)
                     .multilineTextAlignment(.leading)
-                    .fixedSize(horizontal: false, vertical: true) // Add this
+                    .fixedSize(horizontal: false, vertical: true)
                     .padding()
                     .background(Color.gray.opacity(0.1))
                     .cornerRadius(8)
@@ -45,7 +66,7 @@ struct ContentView: View {
             .padding(.horizontal)
             .frame(maxWidth: .infinity, alignment: .leading)
 
-            // Example Section
+
             VStack(alignment: .leading, spacing: 8) {
                 Text("Example:")
                     .font(.headline)
@@ -55,7 +76,7 @@ struct ContentView: View {
                     .italic()
                     .foregroundColor(.primary)
                     .multilineTextAlignment(.leading)
-                    .fixedSize(horizontal: false, vertical: true) // Add this
+                    .fixedSize(horizontal: false, vertical: true)
                     .padding()
                     .background(Color.gray.opacity(0.1))
                     .cornerRadius(8)
@@ -65,7 +86,7 @@ struct ContentView: View {
 
             Divider()
 
-            // Buttons Section
+
             HStack {
                 Button("Memorized it") {
                     markAsMemorized()
@@ -87,6 +108,7 @@ struct ContentView: View {
         .cornerRadius(12)
         .shadow(radius: 8)
         .onAppear {
+            loadMemorizedWords()
             loadRandomWord()
         }
     }
@@ -97,8 +119,6 @@ struct ContentView: View {
     }
 
     func loadRandomWord() {
-        let sheetID = "1U66wi1O42CeuC_7QuMTbF2hlewJinCAmgTOJpZFbV1k"
-        let apiKey = "AIzaSyBjNi7cYMOO_RL_qPqI4wuVP71UZPs72Jg"
         let url = URL(string: "https://sheets.googleapis.com/v4/spreadsheets/\(sheetID)/values/Sheet1?key=\(apiKey)")!
 
         var request = URLRequest(url: url)
@@ -114,7 +134,10 @@ struct ContentView: View {
                 let decodedResponse = try JSONDecoder().decode(GoogleSheetResponse.self, from: data)
                 let rows = decodedResponse.values.dropFirst()
 
-                if let randomRow = rows.randomElement() {
+
+                let unmemorizedRows = rows.filter { !memorizedWords.contains($0[0]) }
+
+                if let randomRow = unmemorizedRows.randomElement() {
                     DispatchQueue.main.async {
                         word = randomRow[0]
                         meaning = randomRow[1]
@@ -123,7 +146,7 @@ struct ContentView: View {
                 } else {
                     DispatchQueue.main.async {
                         word = "No more words!"
-                        meaning = "All words are marked as memorized."
+                        meaning = "You have memorized all words."
                         example = ""
                     }
                 }
@@ -134,37 +157,39 @@ struct ContentView: View {
     }
 
     func markAsMemorized() {
-        guard let wordID = wordID else { return }
+        guard !word.isEmpty, !memorizedWords.contains(word) else { return }
+        memorizedWords.append(word)
 
-        let sheetID = "1U66wi1O42CeuC_7QuMTbF2hlewJinCAmgTOJpZFbV1k"
-        let apiKey = "AIzaSyBjNi7cYMOO_RL_qPqI4wuVP71UZPs72Jg"
-        let url = URL(string: "https://sheets.googleapis.com/v4/spreadsheets/\(sheetID)/values/Sheet1!D\(wordID):D\(wordID)?key=\(apiKey)")!
 
-        var request = URLRequest(url: url)
-        request.httpMethod = "PUT"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        saveMemorizedWords()
+        loadRandomWord()
+    }
 
-        let body: [String: Any] = [
-            "range": "Sheet1!D\(wordID):D\(wordID)",
-            "values": [["TRUE"]]
-        ]
+    func saveMemorizedWords() {
+        let fileURL = getFileURL()
+        do {
+            let data = try JSONEncoder().encode(memorizedWords)
+            try data.write(to: fileURL)
+            print("Memorized words saved to file.")
+        } catch {
+            print("Failed to save memorized words: \(error.localizedDescription)")
+        }
+    }
 
-        request.httpBody = try? JSONSerialization.data(withJSONObject: body, options: [])
+    func loadMemorizedWords() {
+        let fileURL = getFileURL()
+        do {
+            let data = try Data(contentsOf: fileURL)
+            memorizedWords = try JSONDecoder().decode([String].self, from: data)
+            print("Loaded memorized words: \(memorizedWords)")
+        } catch {
+            print("No existing file found, starting fresh.")
+        }
+    }
 
-        URLSession.shared.dataTask(with: request) { data, response, error in
-            guard let data = data, error == nil else {
-                print("Error updating data: \(error?.localizedDescription ?? "Unknown error")")
-                return
-            }
-
-            if let response = response as? HTTPURLResponse, response.statusCode == 200 {
-                print("Marked as memorized successfully")
-                DispatchQueue.main.async {
-                    loadRandomWord()
-                }
-            } else {
-                print("Failed to mark as memorized")
-            }
-        }.resume()
+    func getFileURL() -> URL {
+        let fileManager = FileManager.default
+        let documentsURL = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first!
+        return documentsURL.appendingPathComponent("memorized_words.json")
     }
 }
