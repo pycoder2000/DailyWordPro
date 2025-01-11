@@ -7,6 +7,7 @@
 
 import SwiftUI
 import AppKit
+import UniformTypeIdentifiers
 
 struct ContentView: View {
     @State private var word: String = "Loading..."
@@ -158,12 +159,24 @@ struct ContentView: View {
 
     func markAsMemorized() {
         guard !word.isEmpty, !memorizedWords.contains(word) else { return }
-        memorizedWords.append(word)
 
-
-        saveMemorizedWords()
-        loadRandomWord()
+        if UserDefaults.standard.string(forKey: "memorizedWordsPath") == nil {
+            promptUserForSaveLocation { selectedURL in
+                if let selectedURL = selectedURL {
+                    UserDefaults.standard.set(selectedURL.path, forKey: "memorizedWordsPath")
+                    saveMemorizedWords()
+                    loadRandomWord()
+                } else {
+                    print("User canceled the save location selection.")
+                }
+            }
+        } else {
+            memorizedWords.append(word)
+            saveMemorizedWords()
+            loadRandomWord()
+        }
     }
+
 
     func saveMemorizedWords() {
         let fileURL = getFileURL()
@@ -188,8 +201,28 @@ struct ContentView: View {
     }
 
     func getFileURL() -> URL {
-        let fileManager = FileManager.default
-        let documentsURL = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first!
-        return documentsURL.appendingPathComponent("memorized_words.json")
+        if let savedPath = UserDefaults.standard.string(forKey: "memorizedWordsPath"),
+        !savedPath.isEmpty {
+            return URL(fileURLWithPath: savedPath)
+        } else {
+            let fileManager = FileManager.default
+            let documentsURL = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first!
+            return documentsURL.appendingPathComponent("memorized_words.json")
+        }
+    }
+
+    func promptUserForSaveLocation(completion: @escaping (URL?) -> Void) {
+        let savePanel = NSSavePanel()
+        savePanel.title = "Select Location for Memorized Words"
+        savePanel.allowedContentTypes = [.json] // Use UTType.json
+        savePanel.nameFieldStringValue = "memorized_words.json"
+
+        savePanel.begin { response in
+            if response == .OK, let selectedURL = savePanel.url {
+                completion(selectedURL)
+            } else {
+                completion(nil)
+            }
+        }
     }
 }
