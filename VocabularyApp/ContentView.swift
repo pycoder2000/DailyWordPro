@@ -1,21 +1,15 @@
-//
-//  ContentView.swift
-//  VocabularyApp
-//
-//  Created by Parth Desai on 1/10/25.
-//
-
 import SwiftUI
 import AppKit
-import UniformTypeIdentifiers
 
 struct ContentView: View {
     @State private var word: String = "Loading..."
     @State private var meaning: String = "Loading..."
     @State private var example: String = "Loading..."
-    @State private var memorizedWords: [String] = []
+    @ObservedObject private var memorizedWordsManager = MemorizedWordsManager()
     private var apiKey: String
     private var sheetID: String
+
+    @State private var aboutWindow: NSWindow?
 
     init() {
         if let path = Bundle.main.path(forResource: "Config", ofType: "plist"),
@@ -31,7 +25,6 @@ struct ContentView: View {
 
     var body: some View {
         VStack(spacing: 16) {
-
             Text(word)
                 .font(.system(size: 28, weight: .bold))
                 .foregroundColor(.primary)
@@ -50,7 +43,6 @@ struct ContentView: View {
                 }
                 .frame(maxWidth: .infinity, alignment: .center)
 
-
             VStack(alignment: .leading, spacing: 8) {
                 Text("Meaning:")
                     .font(.headline)
@@ -66,7 +58,6 @@ struct ContentView: View {
             }
             .padding(.horizontal)
             .frame(maxWidth: .infinity, alignment: .leading)
-
 
             VStack(alignment: .leading, spacing: 8) {
                 Text("Example:")
@@ -87,10 +78,10 @@ struct ContentView: View {
 
             Divider()
 
-
             HStack {
                 Button("Memorized it") {
-                    markAsMemorized()
+                    memorizedWordsManager.markAsMemorized(word: word)
+                    loadRandomWord()
                 }
                 .buttonStyle(.borderedProminent)
                 .keyboardShortcut("m", modifiers: [])
@@ -108,8 +99,21 @@ struct ContentView: View {
         .background(Color(NSColor.windowBackgroundColor))
         .cornerRadius(12)
         .shadow(radius: 8)
+        .overlay(
+            VStack {
+                HStack {
+                    Spacer()
+                    SettingsMenu(
+                        resetSaveLocation: memorizedWordsManager.resetSaveLocation,
+                        showAbout: showAbout,
+                        exitApp: exitApp
+                    )
+                }
+                Spacer()
+            }
+            .padding()
+        )
         .onAppear {
-            loadMemorizedWords()
             loadRandomWord()
         }
     }
@@ -135,8 +139,7 @@ struct ContentView: View {
                 let decodedResponse = try JSONDecoder().decode(GoogleSheetResponse.self, from: data)
                 let rows = decodedResponse.values.dropFirst()
 
-
-                let unmemorizedRows = rows.filter { !memorizedWords.contains($0[0]) }
+                let unmemorizedRows = rows.filter { !memorizedWordsManager.memorizedWords.contains($0[0]) }
 
                 if let randomRow = unmemorizedRows.randomElement() {
                     DispatchQueue.main.async {
@@ -157,72 +160,24 @@ struct ContentView: View {
         }.resume()
     }
 
-    func markAsMemorized() {
-        guard !word.isEmpty, !memorizedWords.contains(word) else { return }
-
-        if UserDefaults.standard.string(forKey: "memorizedWordsPath") == nil {
-            promptUserForSaveLocation { selectedURL in
-                if let selectedURL = selectedURL {
-                    UserDefaults.standard.set(selectedURL.path, forKey: "memorizedWordsPath")
-                    saveMemorizedWords()
-                    loadRandomWord()
-                } else {
-                    print("User canceled the save location selection.")
-                }
-            }
-        } else {
-            memorizedWords.append(word)
-            saveMemorizedWords()
-            loadRandomWord()
+    func showAbout() {
+        if aboutWindow == nil {
+            aboutWindow = NSWindow(
+                contentRect: NSRect(x: 0, y: 0, width: 360, height: 400),
+                styleMask: [.titled, .closable, .resizable],
+                backing: .buffered,
+                defer: false
+            )
+            aboutWindow?.center()
+            aboutWindow?.title = "About DailyWordPro"
+            aboutWindow?.contentView = NSHostingView(rootView: AboutView())
+            aboutWindow?.isReleasedWhenClosed = false
         }
+        aboutWindow?.makeKeyAndOrderFront(nil)
+        NSApp.activate(ignoringOtherApps: true)
     }
 
-
-    func saveMemorizedWords() {
-        let fileURL = getFileURL()
-        do {
-            let data = try JSONEncoder().encode(memorizedWords)
-            try data.write(to: fileURL)
-            print("Memorized words saved to file.")
-        } catch {
-            print("Failed to save memorized words: \(error.localizedDescription)")
-        }
-    }
-
-    func loadMemorizedWords() {
-        let fileURL = getFileURL()
-        do {
-            let data = try Data(contentsOf: fileURL)
-            memorizedWords = try JSONDecoder().decode([String].self, from: data)
-            print("Loaded memorized words: \(memorizedWords)")
-        } catch {
-            print("No existing file found, starting fresh.")
-        }
-    }
-
-    func getFileURL() -> URL {
-        if let savedPath = UserDefaults.standard.string(forKey: "memorizedWordsPath"),
-        !savedPath.isEmpty {
-            return URL(fileURLWithPath: savedPath)
-        } else {
-            let fileManager = FileManager.default
-            let documentsURL = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first!
-            return documentsURL.appendingPathComponent("memorized_words.json")
-        }
-    }
-
-    func promptUserForSaveLocation(completion: @escaping (URL?) -> Void) {
-        let savePanel = NSSavePanel()
-        savePanel.title = "Select Location for Memorized Words"
-        savePanel.allowedContentTypes = [.json] // Use UTType.json
-        savePanel.nameFieldStringValue = "memorized_words.json"
-
-        savePanel.begin { response in
-            if response == .OK, let selectedURL = savePanel.url {
-                completion(selectedURL)
-            } else {
-                completion(nil)
-            }
-        }
+    func exitApp() {
+        NSApp.terminate(nil)
     }
 }

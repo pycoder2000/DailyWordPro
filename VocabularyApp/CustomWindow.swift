@@ -19,6 +19,5 @@ class CustomWindowController: NSWindowController, NSWindowDelegate {
     }
 
     func windowWillClose(_ notification: Notification) {
-        NSApp.terminate(nil)
     }
 }
