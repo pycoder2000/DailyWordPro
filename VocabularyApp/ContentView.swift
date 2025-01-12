@@ -169,7 +169,7 @@ struct ContentView: View {
                 defer: false
             )
             aboutWindow?.center()
-            aboutWindow?.title = "About DailyWordPro"
+            aboutWindow?.title = "About Daily Word Pro"
             aboutWindow?.contentView = NSHostingView(rootView: AboutView())
             aboutWindow?.isReleasedWhenClosed = false
         }

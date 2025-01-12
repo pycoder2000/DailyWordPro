@@ -1,6 +1,6 @@
-# DailyWordPro
+# Daily Word Pro
 
-DailyWordPro is a sleek and minimalistic macOS menu bar app designed to improve your vocabulary, one word at a time. Perfect for GRE preparation, academic growth, or anyone looking to enhance their language skills. The app fetches a word, its meaning, and an example sentence from a connected Google Sheet, making vocabulary learning seamless and enjoyable.
+Daily Word Pro is a sleek and minimalistic macOS menu bar app designed to improve your vocabulary, one word at a time. Perfect for GRE preparation, academic growth, or anyone looking to enhance their language skills. The app fetches a word, its meaning, and an example sentence from a connected Google Sheet, making vocabulary learning seamless and enjoyable.
 
 ---
 

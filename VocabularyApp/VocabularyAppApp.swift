@@ -40,7 +40,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         if let button = statusItem?.button {
-            button.image = NSImage(systemSymbolName: "book", accessibilityDescription: "Vocabulary App")
+            button.image = NSImage(systemSymbolName: "book", accessibilityDescription: "Daily Word Pro")
             button.action = #selector(togglePopover(_:))
         }
 
