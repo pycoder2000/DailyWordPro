@@ -4,9 +4,13 @@ struct SettingsMenu: View {
     var resetSaveLocation: () -> Void
     var showAbout: () -> Void
     var exitApp: () -> Void
+    @State private var showingSheetConfig = false
 
     var body: some View {
         Menu {
+            Button("Change Data Source") {
+                showingSheetConfig.toggle()
+            }
             Button("Reset Save Location") {
                 resetSaveLocation()
             }
@@ -23,5 +27,8 @@ struct SettingsMenu: View {
                 .foregroundColor(.primary)
         }
         .buttonStyle(PlainButtonStyle())
+        .sheet(isPresented: $showingSheetConfig) {
+            SheetConfigView()
+        }
     }
 }

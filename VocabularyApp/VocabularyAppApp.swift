@@ -23,20 +23,23 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var popover: NSPopover?
     var eventMonitor: EventMonitor?
     var contentView: ContentView?
+    private var apiKey: String
+    private var defaultSheetID: String
+
+    override init() {
+        if let path = Bundle.main.path(forResource: "Config", ofType: "plist"),
+           let config = NSDictionary(contentsOfFile: path),
+           let apiKey = config["API_KEY"] as? String,
+           let sheetID = config["SHEET_ID"] as? String {
+            self.apiKey = apiKey
+            self.defaultSheetID = sheetID
+        } else {
+            fatalError("API_KEY or SHEET_ID not found in Config.plist")
+        }
+    }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        contentView = ContentView()
-
-        popover = NSPopover()
-        popover?.contentSize = NSSize(width: 360, height: 0)
-        popover?.behavior = .transient
-
-        let hostingController = NSHostingController(rootView: contentView!)
-        hostingController.view.setFrameSize(NSSize(width: 360, height: 1))
-
-        hostingController.view.autoresizingMask = [.height]
-
-        popover?.contentViewController = hostingController
+        loadContentView()
 
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         if let button = statusItem?.button {
@@ -52,6 +55,21 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         // Load a new word when the app is opened
         loadNewWordIfNeeded()
+    }
+
+    func loadContentView() {
+        contentView = ContentView(apiKey: apiKey, defaultSheetID: defaultSheetID)
+
+        popover = NSPopover()
+        popover?.contentSize = NSSize(width: 360, height: 0)
+        popover?.behavior = .transient
+
+        let hostingController = NSHostingController(rootView: contentView!)
+        hostingController.view.setFrameSize(NSSize(width: 360, height: 1))
+
+        hostingController.view.autoresizingMask = [.height]
+
+        popover?.contentViewController = hostingController
     }
 
     @objc func togglePopover(_ sender: Any?) {
@@ -91,6 +109,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             contentView?.loadRandomWord()
             userDefaults.set(Date(), forKey: lastLoadedDateKey)
         }
+    }
+
+    func reloadContentView() {
+        loadContentView()
+        if let popover = popover, popover.isShown {
+            popover.contentViewController = NSHostingController(rootView: contentView!)
+        }
+        contentView?.loadRandomWord()
     }
 }
 

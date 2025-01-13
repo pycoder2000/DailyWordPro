@@ -6,21 +6,15 @@ struct ContentView: View {
     @State private var meaning: String = "Loading..."
     @State private var example: String = "Loading..."
     @ObservedObject private var memorizedWordsManager = MemorizedWordsManager()
+    @AppStorage("sheetID") private var userSheetID: String = ""
     private var apiKey: String
-    private var sheetID: String
+    private var defaultSheetID: String
 
     @State private var aboutWindow: NSWindow?
 
-    init() {
-        if let path = Bundle.main.path(forResource: "Config", ofType: "plist"),
-           let config = NSDictionary(contentsOfFile: path),
-           let apiKey = config["API_KEY"] as? String,
-           let sheetID = config["SHEET_ID"] as? String {
-            self.apiKey = apiKey
-            self.sheetID = sheetID
-        } else {
-            fatalError("API_KEY or SHEET_ID not found in Config.plist")
-        }
+    init(apiKey: String, defaultSheetID: String) {
+        self.apiKey = apiKey
+        self.defaultSheetID = defaultSheetID
     }
 
     var body: some View {
@@ -124,6 +118,8 @@ struct ContentView: View {
     }
 
     func loadRandomWord() {
+        let sheetID = userSheetID.isEmpty ? defaultSheetID : userSheetID
+
         let url = URL(string: "https://sheets.googleapis.com/v4/spreadsheets/\(sheetID)/values/Sheet1?key=\(apiKey)")!
 
         var request = URLRequest(url: url)
@@ -151,7 +147,7 @@ struct ContentView: View {
                     DispatchQueue.main.async {
                         word = "No more words!"
                         meaning = "You have memorized all words."
-                        example = ""
+                        example = "Please add more words to your Google Sheet."
                     }
                 }
             } catch {

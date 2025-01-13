@@ -12,6 +12,7 @@ Daily Word Pro is a sleek and minimalistic macOS menu bar app designed to improv
   - Click on the word to search for it on Google for further exploration.
 - **Beautiful UI**: Clean and minimal design with hover effects and customizable colors that adapt to macOS's light and dark modes.
 - **Custom Word Bank**: Integrates with your Google Sheet for easy customization of words.
+- **Settings Menu**: Configure your Google Sheet, reset save location, view about information, and exit the app.
 
 ---
 
@@ -57,11 +58,19 @@ Daily Word Pro is a sleek and minimalistic macOS menu bar app designed to improv
 
 3. **Configure Google Sheets API**:
    - Create a Google API key from the [Google Cloud Console](https://console.cloud.google.com/).
-   - Update your API key and Google Sheet ID in `ContentView.swift`:
-     ```swift
-     let sheetID = "YOUR_GOOGLE_SHEET_ID"
-     let apiKey = "YOUR_GOOGLE_API_KEY"
-     ```
+   - Update your API key and Google Sheet ID in `Config.plist`:
+    ```xml
+    <?xml version="1.0" encoding="UTF-8"?>
+    <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+    <plist version="1.0">
+    <dict>
+        <key>API_KEY</key>
+        <string>YOUR_GOOGLE_API_KEY</string>
+        <key>SHEET_ID</key>
+        <string>YOUR_GOOGLE_SHEET_ID</string>
+    </dict>
+    </plist>
+    ```
 
 4. **Run the App**:
    - Select "My Mac" as the target device in Xcode.
@@ -84,6 +93,12 @@ Daily Word Pro is a sleek and minimalistic macOS menu bar app designed to improv
    - Update your Google Sheet with new words, meanings, and examples.
    - The app will fetch the updated data automatically.
 
+4. **Settings Menu**:
+   - **Change Data Source**: Configure your Google Sheet link.
+   - **Reset Save Location**: Reset the location where memorized words are saved.
+   - **About**: View information about the app.
+   - **Exit**: Close the app.
+
 ---
 
 ## Project Structure
@@ -91,11 +106,23 @@ Daily Word Pro is a sleek and minimalistic macOS menu bar app designed to improv
 ```
 📦DailyWordPro
  ┣ 📂DailyWordPro
- ┃ ┣ 📜ContentView.swift       # Main UI and logic for the app
- ┃ ┣ 📜DailyWordProApp.swift       # App entry point
- ┃ ┗ 📂Assets.xcassets         # App icons and color assets
- ┣ 📂DailyWordPro.xcodeproj        # Xcode project configuration
- ┗ 📜README.md                 # Project documentation
+ ┃ ┣ 📜AboutView.swift           # About view for the app
+ ┃ ┣ 📜Assets.xcassets           # App icons and color assets
+ ┃ ┣ 📜Config.plist              # Configuration file for API key and sheet ID
+ ┃ ┣ 📜ContentView.swift         # Main UI and logic for the app
+ ┃ ┣ 📜CustomWindow.swift        # Custom window implementation
+ ┃ ┣ 📜GoogleSheetResponse.swift # Model for Google Sheet response
+ ┃ ┣ 📜Info.plist                # Info.plist for the app
+ ┃ ┣ 📜MemorizedWordsManager.swift # Manager for memorized words
+ ┃ ┣ 📜SettingsMenu.swift        # Settings menu for the app
+ ┃ ┣ 📜SheetConfigView.swift     # View for configuring Google Sheet
+ ┃ ┣ 📜VocabularyApp.entitlements # App entitlements
+ ┃ ┣ 📜VocabularyAppApp.swift    # App entry point
+ ┃ ┗ 📜WordView.swift            # View for displaying word details
+ ┣ 📂DailyWordPro.xcodeproj      # Xcode project configuration
+ ┣ 📂VocabularyAppTests          # Unit tests for the app
+ ┣ 📂VocabularyAppUITests        # UI tests for the app
+ ┗ 📜README.md                   # Project documentation
 ```
 
 ---
