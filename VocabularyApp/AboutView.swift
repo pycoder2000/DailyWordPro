@@ -30,7 +30,10 @@ struct AboutView: View {
                 Link("Support Email", destination: URL(string: "mailto:desaiparth2000@gmail.com")!)
                     .foregroundColor(.blue)
 
-                Link("Follow on X", destination: URL(string: "https://twitter.com/pycoder2000")!)
+                Link("Follow on X", destination: URL(string: "https://x.com/_ParthDesai_")!)
+                    .foregroundColor(.blue)
+
+                Link("Source Code", destination: URL(string: "https://github.com/pycoder2000/DailyWordPro")!)
                     .foregroundColor(.blue)
             }
 
